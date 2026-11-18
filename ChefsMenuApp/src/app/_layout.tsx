@@ -22,16 +22,16 @@ export default function Layout() {
         name="menu-list"
         options={{
           title: 'Menu List',
-          headerTitle: 'Full Menu Catalog',
+          headerTitle: 'Catalog & Search',
         }}
       />
       <Tabs.Screen
         name="add-dish"
         options={{
           title: 'Add Dish',
-          headerTitle: 'Add New Menu Item',
+          headerTitle: 'Add New Item',
         }}
       />
     </Tabs>
   );
-}
+} 
