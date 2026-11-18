@@ -147,4 +147,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButtonSecondaryText: { color: '#0369A1', fontWeight: 'bold', fontSize: 14 },
-});
+}); 

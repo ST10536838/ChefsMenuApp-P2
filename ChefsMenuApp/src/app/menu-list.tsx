@@ -1,20 +1,41 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  SafeAreaView,
+  TouchableOpacity,
+} from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { sharedMenuItems, clearMenuItems } from './add-dish';
+import {
+  getMenuItems,
+  clearAllMenuItems,
+  deleteMenuItem,
+  MenuItem,
+} from '../utils/menuStore';
 
 export default function MenuListScreen() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<MenuItem[]>([]);
+
+  const refreshList = () => {
+    setItems(getMenuItems());
+  };
 
   useFocusEffect(
     React.useCallback(() => {
-      setItems([...sharedMenuItems]);
+      refreshList();
     }, [])
   );
 
   const handleReset = () => {
-    clearMenuItems();
-    setItems([]);
+    clearAllMenuItems();
+    refreshList();
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMenuItem(id);
+    refreshList();
   };
 
   return (
@@ -52,7 +73,15 @@ export default function MenuListScreen() {
                   </View>
                 </View>
                 <Text style={styles.dishDescriptionText}>{item.description}</Text>
-                <Text style={styles.dishPriceText}>Price: R{item.price}</Text>
+                <View style={styles.cardFooter}>
+                  <Text style={styles.dishPriceText}>Price: R{item.price}</Text>
+                  <TouchableOpacity
+                    style={styles.deleteBtn}
+                    onPress={() => handleDelete(item.id)}
+                  >
+                    <Text style={styles.deleteBtnText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           />
@@ -80,5 +109,8 @@ const styles = StyleSheet.create({
   courseBadge: { backgroundColor: '#F1F5F9', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
   courseBadgeText: { fontSize: 10, fontWeight: '700', color: '#0891B2' },
   dishDescriptionText: { fontSize: 12, color: '#475569', marginBottom: 8 },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 8 },
   dishPriceText: { fontSize: 13, fontWeight: 'bold', color: '#059669' },
+  deleteBtn: { backgroundColor: '#FEE2E2', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  deleteBtnText: { fontSize: 11, color: '#DC2626', fontWeight: '600' },
 });
