@@ -11,59 +11,56 @@ import {
   ScrollView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-
-// Export shared state and clear helper for index.tsx and menu-list.tsx
-export let sharedMenuItems: any[] = [];
-
-export function clearMenuItems() {
-  sharedMenuItems.length = 0;
-}
+import { addMenuItem, validateDishInput, CourseType } from '../utils/menuStore';
 
 export default function AddDishScreen() {
   const [dishName, setDishName] = useState('');
   const [description, setDescription] = useState('');
-  const [course, setCourse] = useState('Starter');
+  const [course, setCourse] = useState<CourseType>('Starter');
   const [price, setPrice] = useState('');
   const [feedback, setFeedback] = useState({ text: '', isError: false });
 
   const handleSave = () => {
-    if (!dishName.trim() || !description.trim() || !price.trim()) {
-      setFeedback({ text: 'Validation Error: All fields are required.', isError: true });
+    const validation = validateDishInput(dishName, description, price);
+    if (!validation.valid || validation.parsedPrice === undefined) {
+      setFeedback({ text: `Validation Error: ${validation.error}`, isError: true });
       return;
     }
 
-    const parsedPrice = parseFloat(price);
-    if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      setFeedback({ text: 'Validation Error: Price must be a valid positive number.', isError: true });
-      return;
-    }
-
-    // Save to shared array
-    sharedMenuItems.unshift({
+    addMenuItem({
       id: Date.now().toString(),
       dishName: dishName.trim(),
       description: description.trim(),
       course,
-      price: parsedPrice.toFixed(2),
+      price: validation.parsedPrice.toFixed(2),
     });
 
-    // Reset inputs
     setDishName('');
     setDescription('');
     setCourse('Starter');
     setPrice('');
-    setFeedback({ text: 'Success: Item saved to catalog!', isError: false });
+    setFeedback({ text: `Success: "${dishName.trim()}" added!`, isError: false });
 
     setTimeout(() => setFeedback({ text: '', isError: false }), 3000);
   };
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {feedback.text !== '' && (
-            <View style={[styles.feedbackBanner, feedback.isError ? styles.errorBanner : styles.successBanner]}>
-              <Text style={feedback.isError ? styles.errorText : styles.successText}>{feedback.text}</Text>
+            <View
+              style={[
+                styles.feedbackBanner,
+                feedback.isError ? styles.errorBanner : styles.successBanner,
+              ]}
+            >
+              <Text style={feedback.isError ? styles.errorText : styles.successText}>
+                {feedback.text}
+              </Text>
             </View>
           )}
 
@@ -81,7 +78,10 @@ export default function AddDishScreen() {
 
             <Text style={styles.inputLabel}>Course Classification</Text>
             <View style={styles.pickerWrapper}>
-              <Picker selectedValue={course} onValueChange={(val) => setCourse(val)}>
+              <Picker
+                selectedValue={course}
+                onValueChange={(val) => setCourse(val as CourseType)}
+              >
                 <Picker.Item label="Starter" value="Starter" />
                 <Picker.Item label="Main Course" value="Main Course" />
                 <Picker.Item label="Dessert" value="Dessert" />
@@ -130,9 +130,29 @@ const styles = StyleSheet.create({
   formCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, elevation: 2 },
   sectionHeader: { fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginBottom: 12 },
   inputLabel: { fontSize: 12, fontWeight: '600', color: '#334155', marginBottom: 4, marginTop: 8 },
-  textInput: { backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14 },
-  multilineInput: { height: 70, textAlignVertical: 'top' },
-  pickerWrapper: { backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden' },
-  submitButton: { backgroundColor: '#0891B2', borderRadius: 8, paddingVertical: 12, alignItems: 'center', marginTop: 16 },
+  textInput: {
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+  },
+  multilineInput: { height: 75, textAlignVertical: 'top' },
+  pickerWrapper: {
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  submitButton: {
+    backgroundColor: '#0891B2',
+    borderRadius: 8,
+    paddingVertical: 13,
+    alignItems: 'center',
+    marginTop: 18,
+  },
   submitButtonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
 });
